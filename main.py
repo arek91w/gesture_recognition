@@ -28,6 +28,7 @@ frame_threshold = cv2.inRange(gray, lower, upper)
 cv2.imshow("Threshold", frame_threshold)
 cv2.waitKey(0)
 
+font = cv2.FONT_HERSHEY_SIMPLEX
 
 # funcja przetwarzajaca zdjecia i znajdujaca charakterystyczne punkty na zdjeciach
 def preprocess_image(image):
@@ -64,12 +65,37 @@ def preprocess_image(image):
     cv2.circle(im, extTop, 8, (255, 0, 0), -1)
     cv2.circle(im, extBot, 8, (255, 255, 0), -1)
 
-
+    cv2.putText(im, 'A', (100,100), font, 3, (0, 255, 0), 2, cv2.LINE_AA)
     # show the output image
     cv2.imshow(image, im)
+
     cv2.waitKey(0)
 
-for ch in characters:
-    preprocess_image(f"images/{ch}1.jpg")
+    return extLeft, extRight, extTop, extBot
 
 
+def predict(left, right, top, bot):
+    width = right[0] - left[0]
+    heigth = bot[1] - top[1]
+    x_shift = right[1] - left[1]
+    y_shift = top[0] - left[0]
+    return width, heigth, x_shift, y_shift
+
+    print("predict")
+
+l, r, t, b = preprocess_image(f"images/Y3.jpg")
+
+width, heigth, x_shift, y_shift = predict(l, r, t, b)
+
+if width < 430 and width > 394 and heigth < 560 and heigth > 502 and x_shift < -120 and x_shift > -150 and y_shift < 366 and y_shift > 320:
+    print("A")
+elif width < 340 and width > 294 and heigth < 710 and heigth > 600 and x_shift < 20 and x_shift > -66 and y_shift < 200 and y_shift > 144:
+    print("B")
+elif width < 582 and width > 520 and heigth < 710 and heigth > 660 and x_shift < -110 and x_shift > -170 and y_shift < 300 and y_shift > 244:
+    print("L")
+elif width < 350 and width > 290 and heigth < 674 and heigth > 580 and x_shift < -70 and x_shift > -200 and y_shift < 130 and y_shift > 80:
+    print("V")
+elif width < 600 and width > 560 and heigth < 640 and heigth > 600 and x_shift < 240 and x_shift > 200 and y_shift < 30 and y_shift > 0:
+    print("Y")
+else:
+    print("ni mozno rozpoznac")
