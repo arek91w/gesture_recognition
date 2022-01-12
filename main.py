@@ -8,6 +8,7 @@ import numpy as np
 
 # tabela znakow do rozpoznania
 
+'''
 characters = ["A", "B", "L", "V", "Y"]
 
 im = cv2.imread("images/Y1.jpg")
@@ -27,7 +28,7 @@ frame_threshold = cv2.inRange(gray, lower, upper)
 
 cv2.imshow("Threshold", frame_threshold)
 cv2.waitKey(0)
-
+'''
 font = cv2.FONT_HERSHEY_SIMPLEX
 
 # funcja przetwarzajaca zdjecia i znajdujaca charakterystyczne punkty na zdjeciach
@@ -82,6 +83,7 @@ def predict(left, right, top, bot):
     y_shift = top[0] - left[0]
     return width, heigth, x_shift, y_shift
 
+'''
 imag, l, r, t, b = preprocess_image(f"images/V3.jpg")
 
 width, heigth, x_shift, y_shift = predict(l, r, t, b)
@@ -104,3 +106,4 @@ else:
 
 cv2.imshow("PREDICT", imag)
 cv2.waitKey(0)
+'''
