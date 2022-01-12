@@ -1,109 +1,130 @@
-# Imports
-
+from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5.QtWidgets import QWidget, QApplication, QLabel, QVBoxLayout, QHBoxLayout, QPushButton
+from PyQt5.QtGui import QPixmap, QImage, QColor
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt,QObject
+import sys
 import cv2
-import imutils
-import numpy as np
+from process import preprocess_image, predict
+from os import walk
+import random
 
 
+filenames = next(walk('./images'), (None, None, []))[2]
+num_of_pics = len(filenames)
 
-# tabela znakow do rozpoznania
-
-'''
-characters = ["A", "B", "L", "V", "Y"]
-
-im = cv2.imread("images/Y1.jpg")
-cv2.imshow("Image", im)
-cv2.waitKey(0)
-
-
-gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-gray = cv2.GaussianBlur(gray, (5, 5), 0)
-cv2.imshow("Gray", gray)
-cv2.waitKey(0)
-
-lower = np.array(68)
-upper = np.array(255)
-
-frame_threshold = cv2.inRange(gray, lower, upper)
-
-cv2.imshow("Threshold", frame_threshold)
-cv2.waitKey(0)
-'''
 font = cv2.FONT_HERSHEY_SIMPLEX
-
-# funcja przetwarzajaca zdjecia i znajdujaca charakterystyczne punkty na zdjeciach
-def preprocess_image(image):
-
-    # ladowanie zdjecia
-    im = cv2.imread(image)
-    imag = cv2.imread(image)
-
-    # konwersja na zdjecie czarno-biale oraz dadanie rozmycia Gaussa
-    gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-    gray = cv2.GaussianBlur(gray, (5, 5), 0)
-
-    # ustalenie granic thresholdu aby wykryc granice dloni
-    lower = np.array(68)
-    upper = np.array(255)
-
-    frame_threshold = cv2.inRange(gray, lower, upper)
-
-    #znalezienie kontur oraz wybranie najdluzszej (obrys dloni)
-    cnts = cv2.findContours(frame_threshold.copy(), cv2.RETR_EXTERNAL,
-	cv2.CHAIN_APPROX_SIMPLE)
-    cnts = imutils.grab_contours(cnts)
-    c = max(cnts, key=cv2.contourArea)
-
-    # punkty charakterystyczne (maxLeft, maxRight, extTop, extBot)
-    extLeft = tuple(c[c[:, :, 0].argmin()][0])
-    extRight = tuple(c[c[:, :, 0].argmax()][0])
-    extTop = tuple(c[c[:, :, 1].argmin()][0])
-    extBot = tuple(c[c[:, :, 1].argmax()][0])
-
-    # dorysowanie punktow do zdjecia
-    cv2.drawContours(im, [c], -1, (0, 255, 255), 2)
-    cv2.circle(im, extLeft, 8, (0, 0, 255), -1)
-    cv2.circle(im, extRight, 8, (0, 255, 0), -1)
-    cv2.circle(im, extTop, 8, (255, 0, 0), -1)
-    cv2.circle(im, extBot, 8, (255, 255, 0), -1)
-    # show the output image
-    cv2.imshow(image, im)
-
-    cv2.waitKey(0)
-
-    return imag, extLeft, extRight, extTop, extBot
+path = 'images/A1.jpg'
 
 
-# funkcja obliczajaca charakterystyki pukntow charakterystycznych
-
-def predict(left, right, top, bot):
-    width = right[0] - left[0]
-    heigth = bot[1] - top[1]
-    x_shift = right[1] - left[1]
-    y_shift = top[0] - left[0]
-    return width, heigth, x_shift, y_shift
-
-'''
-imag, l, r, t, b = preprocess_image(f"images/V3.jpg")
-
-width, heigth, x_shift, y_shift = predict(l, r, t, b)
 
 
-# na podstawie charekterystyk przewidywanie znaku
 
-if width < 430 and width > 394 and heigth < 560 and heigth > 502 and x_shift < -120 and x_shift > -150 and y_shift < 366 and y_shift > 320:
-    cv2.putText(imag, 'A', (100,100), font, 3, (0, 255, 0), 2, cv2.LINE_AA)
-elif width < 340 and width > 294 and heigth < 710 and heigth > 600 and x_shift < 20 and x_shift > -66 and y_shift < 200 and y_shift > 144:
-    cv2.putText(imag, 'B', (100,100), font, 3, (0, 255, 0), 2, cv2.LINE_AA)
-elif width < 582 and width > 520 and heigth < 710 and heigth > 660 and x_shift < -110 and x_shift > -170 and y_shift < 300 and y_shift > 244:
-    cv2.putText(imag, 'L', (100,100), font, 3, (0, 255, 0), 2, cv2.LINE_AA)
-elif width < 350 and width > 290 and heigth < 674 and heigth > 580 and x_shift < -70 and x_shift > -200 and y_shift < 130 and y_shift > 80:
-    cv2.putText(imag, 'V', (100,100), font, 3, (0, 255, 0), 2, cv2.LINE_AA)
-elif width < 600 and width > 560 and heigth < 640 and heigth > 600 and x_shift < 240 and x_shift > 200 and y_shift < 30 and y_shift > 0:
-    cv2.putText(imag, 'Y', (100,100), font, 3, (0, 255, 0), 2, cv2.LINE_AA)
-else:
-    print("can't recognise")
 
-cv2.imshow("PREDICT", imag)
-cv2.waitKey(0)
-'''
+class App(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Gesture recognition")
+        self.disply_width = 640
+        self.display_height = 480
+        self.x = 0
+        # create the label that holds the image
+        self.image_label = QLabel(self)
+        #self.image_label.resize(self.disply_width, self.display_height)
+        # create a text label
+        self.textLabel = QLabel('Polecat')
+        self.reco_btn = QPushButton('RECOGNIZE', self)
+        self.back_btn = QPushButton('CHANGE IMAGE', self)
+        self.reco_btn.setStyleSheet("QPushButton"
+                             "{"
+                             "background-color : lightblue;"
+                             "font-size: 18pt;"
+                             "}"
+                             "QPushButton::pressed"
+                             "{"
+                             "background-color : white;"
+                             "}"
+                             )
+        self.back_btn.setStyleSheet("QPushButton"
+                             "{"
+                             "background-color : lightblue;"
+                             "font-size: 18pt;"
+                             "}"
+                             "QPushButton::pressed"
+                             "{"
+                             "background-color : white;"
+                             "}"
+                             )
+
+        hbox = QHBoxLayout()
+        hbox.addStretch(1)
+        hbox.addWidget(self.back_btn)
+        # create a vertical box layout and add the two labels
+        vbox = QVBoxLayout()
+        vbox.addWidget(self.image_label)
+        vbox.addWidget(self.textLabel)
+        vbox.addWidget(self.back_btn)
+        vbox.addWidget(self.reco_btn)
+        # set the vbox layout as the widgets layout
+        self.setLayout(vbox)
+        # don't need the grey image now
+        #grey = QPixmap(self.disply_width, self.display_height)
+        #grey.fill(QColor('darkGray'))
+        #self.image_label.setPixmap(grey)
+
+        # load the test image - we really should have checked that this worked!
+        self.cv_img = cv2.imread('images/'+filenames[0])
+        # convert the image to Qt format
+        self.qt_img = self.convert_cv_qt(self.cv_img)
+        # display it
+        self.image_label.setPixmap(self.qt_img)
+        self.reco_btn.clicked.connect(lambda: self.reco_sign(filenames[self.x]))
+        self.back_btn.clicked.connect(self.backward)
+
+
+    
+    def convert_cv_qt(self, cv_img):
+        """Convert from an opencv image to QPixmap"""
+        rgb_image = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
+        h, w, ch = rgb_image.shape
+        bytes_per_line = ch * w
+        convert_to_Qt_format = QtGui.QImage(rgb_image.data, w, h, bytes_per_line, QtGui.QImage.Format_RGB888)
+        p = convert_to_Qt_format.scaled(self.disply_width, self.display_height, Qt.KeepAspectRatio)
+        return QPixmap.fromImage(p)
+
+    def reco_sign(self, path_1):
+        imag, l, r, t, b = preprocess_image('images/'+path_1)
+        width, heigth, x_shift, y_shift = predict(l, r, t, b)
+        if width < 430 and width > 394 and heigth < 560 and heigth > 502 and x_shift < -120 and x_shift > -150 and y_shift < 366 and y_shift > 320:
+            cv2.putText(imag, 'A', (100,100), font, 3, (0, 255, 0), 2, cv2.LINE_AA)
+        elif width < 340 and width > 294 and heigth < 710 and heigth > 600 and x_shift < 20 and x_shift > -66 and y_shift < 200 and y_shift > 144:
+            cv2.putText(imag, 'B', (100,100), font, 3, (0, 255, 0), 2, cv2.LINE_AA)
+        elif width < 582 and width > 520 and heigth < 710 and heigth > 660 and x_shift < -110 and x_shift > -170 and y_shift < 300 and y_shift > 244:
+            cv2.putText(imag, 'L', (100,100), font, 3, (0, 255, 0), 2, cv2.LINE_AA)
+        elif width < 350 and width > 290 and heigth < 674 and heigth > 580 and x_shift < -70 and x_shift > -200 and y_shift < 130 and y_shift > 80:
+            cv2.putText(imag, 'V', (100,100), font, 3, (0, 255, 0), 2, cv2.LINE_AA)
+        elif width < 600 and width > 560 and heigth < 640 and heigth > 600 and x_shift < 240 and x_shift > 200 and y_shift < 30 and y_shift > 0:
+            cv2.putText(imag, 'Y', (100,100), font, 3, (0, 255, 0), 2, cv2.LINE_AA)
+        else:
+            print("can't recognise")
+
+        cv2.imshow("PREDICT", imag)
+        cv2.waitKey(0)
+        print("klicker")
+
+    def backward(self):
+        self.x = random.randint(0,num_of_pics-1)
+        print(filenames[self.x])
+        self.cv_img = cv2.imread('images/'+filenames[self.x])
+        # convert the image to Qt format
+        self.qt_img = self.convert_cv_qt(self.cv_img)
+        # display it
+        self.image_label.setPixmap(self.qt_img)
+
+
+
+    
+if __name__=="__main__":
+    app = QApplication(sys.argv)
+    a = App()
+    a.show()
+    sys.exit(app.exec_())
