@@ -88,18 +88,21 @@ class App(QWidget):
     def reco_sign(self, path_1):
         imag, l, r, t, b = preprocess_image('images/'+path_1)
         width, heigth, x_shift, y_shift = predict(l, r, t, b)
-        if width < 430 and width > 394 and heigth < 560 and heigth > 502 and x_shift < -120 and x_shift > -150 and y_shift < 366 and y_shift > 320:
+        t_ratio, z_ratio = width/heigth, x_shift/y_shift
+        print(t_ratio, z_ratio)
+        if t_ratio < 0.9 and t_ratio > 0.7 and z_ratio < -0.3 and z_ratio > -0.45:
             cv2.putText(imag, 'Predicted letter: A', (100,100), font, 2, (0, 255, 0), 2, cv2.LINE_AA)
-        elif width < 340 and width > 294 and heigth < 710 and heigth > 600 and x_shift < 20 and x_shift > -66 and y_shift < 200 and y_shift > 144:
+        elif t_ratio < 0.6 and t_ratio > 0.4 and z_ratio < 0.15 and z_ratio > -0.4:
             cv2.putText(imag, 'Predicted letter: B', (100,100), font, 2, (0, 255, 0), 2, cv2.LINE_AA)
-        elif width < 582 and width > 520 and heigth < 710 and heigth > 660 and x_shift < -110 and x_shift > -170 and y_shift < 300 and y_shift > 244:
+        elif t_ratio < 0.9 and t_ratio > 0.7 and z_ratio < -0.4 and z_ratio > -0.6:
             cv2.putText(imag, 'Predicted letter: L', (100,100), font, 2, (0, 255, 0), 2, cv2.LINE_AA)
-        elif width < 350 and width > 290 and heigth < 674 and heigth > 580 and x_shift < -70 and x_shift > -200 and y_shift < 130 and y_shift > 80:
+        elif t_ratio < 0.6 and t_ratio > 0.4 and z_ratio < -0.8 and z_ratio > -1.2:
             cv2.putText(imag, 'Predicted letter: V', (100,100), font, 2, (0, 255, 0), 2, cv2.LINE_AA)
-        elif width < 600 and width > 560 and heigth < 640 and heigth > 600 and x_shift < 240 and x_shift > 200 and y_shift < 30 and y_shift > 0:
+        elif t_ratio < 1 and t_ratio > 0.8 and z_ratio < 18 and z_ratio > 9:
             cv2.putText(imag, 'Predicted letter: Y', (100,100), font, 2, (0, 255, 0), 2, cv2.LINE_AA)
         else:
             print("can't recognise")
+            cv2.putText(imag, 'CANT RECOGNIZE', (100,100), font, 2, (0, 255, 0), 2, cv2.LINE_AA)
 
         cv2.imshow("PREDICT", imag)
         cv2.waitKey(0)
