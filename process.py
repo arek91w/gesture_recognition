@@ -38,16 +38,19 @@ def preprocess_image(image):
     im = cv2.imread(image)
     imag = cv2.imread(image)
 
+    im = im[10:-10,10:-10]
+
     # konwersja na zdjecie czarno-biale oraz dadanie rozmycia Gaussa
     gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
     gray = cv2.GaussianBlur(gray, (5, 5), 0)
 
     # ustalenie granic thresholdu aby wykryc granice dloni
-    lower = np.array(68)
-    upper = np.array(255)
+    lower = np.array([77, 77, 77])
+    upper = np.array([255, 255, 255])
 
-    frame_threshold = cv2.inRange(gray, lower, upper)
+    frame_threshold = cv2.inRange(im, lower, upper)
 
+    
     #znalezienie kontur oraz wybranie najdluzszej (obrys dloni)
     cnts = cv2.findContours(frame_threshold.copy(), cv2.RETR_EXTERNAL,
 	cv2.CHAIN_APPROX_SIMPLE)

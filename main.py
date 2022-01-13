@@ -96,7 +96,7 @@ class App(QWidget):
             cv2.putText(imag, 'Predicted letter: B', (100,100), font, 2, (0, 255, 0), 2, cv2.LINE_AA)
         elif t_ratio < 0.9 and t_ratio > 0.7 and z_ratio < -0.4 and z_ratio > -0.6:
             cv2.putText(imag, 'Predicted letter: L', (100,100), font, 2, (0, 255, 0), 2, cv2.LINE_AA)
-        elif t_ratio < 0.6 and t_ratio > 0.4 and z_ratio < -0.8 and z_ratio > -1.6:
+        elif t_ratio < 0.7 and t_ratio > 0.4 and z_ratio < 7 and z_ratio > -1.6:
             cv2.putText(imag, 'Predicted letter: V', (100,100), font, 2, (0, 255, 0), 2, cv2.LINE_AA)
         elif t_ratio < 1 and t_ratio > 0.8 and z_ratio < 18 and z_ratio > 9:
             cv2.putText(imag, 'Predicted letter: Y', (100,100), font, 2, (0, 255, 0), 2, cv2.LINE_AA)
